@@ -33,11 +33,19 @@ module.exports = {
         type: Sequelize.BOOLEAN
       },
 
-      typeRole: {
+      roleId: {
         type: Sequelize.STRING
       },
 
-      keyRole: {
+      phoneNumber: {
+        type: Sequelize.STRING
+      },
+
+      positionId: {
+        type: Sequelize.STRING
+      },
+
+      image: {
         type: Sequelize.STRING
       },
 
