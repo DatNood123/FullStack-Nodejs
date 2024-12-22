@@ -105,7 +105,7 @@ let deleteUserById = (userId) => {
 
             })
             if (user) {
-                user.destroy()
+                await user.destroy()
             }
 
             resolve()
