@@ -1,7 +1,5 @@
-import { raw } from "body-parser";
 import db from "../models/index";
-import { where } from "sequelize";
-import _, { includes } from 'lodash';
+import _ from 'lodash';
 require('dotenv').config();
 
 const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
@@ -54,17 +52,37 @@ let getAllDoctorService = () => {
     })
 }
 
+let checkRequiredFields = (inputData) => {
+    let arrFields = ['doctorId', 'contentHTML', 'contentMarkdown',
+        'action', 'selectedPrice', 'selectedPayment', 'selectedProvince',
+        'nameClinic', 'addressClinic', 'note', 'specialtyId'
+    ]
+
+    let isValid = true;
+    let element = '';
+    for (let i = 0; i < arrFields.length; i++) {
+        if (!inputData[arrFields[i]]) {
+            isValid = false;
+            element = arrFields[i];
+            break;
+        }
+    }
+
+    return {
+        isValid: isValid,
+        element: element
+    }
+}
+
 let saveDetailInfoDoctorService = (inputData) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!inputData.doctorId || !inputData.contentHTML
-                || !inputData.contentMarkdown || !inputData.action
-                || !inputData.selectedPrice || !inputData.selectedPayment
-                || !inputData.selectedProvince || !inputData.nameClinic
-                || !inputData.addressClinic || !inputData.note) {
+
+            let checkObject = checkRequiredFields(inputData)
+            if (checkObject.isValid === false) {
                 resolve({
                     errCode: 1,
-                    errMessage: 'Missing value'
+                    errMessage: `Missing value: ${checkObject.element}`
                 })
 
             } else {
@@ -109,6 +127,8 @@ let saveDetailInfoDoctorService = (inputData) => {
                     doctorInfor.nameClinic = inputData.nameClinic;
                     doctorInfor.addressClinic = inputData.addressClinic;
                     doctorInfor.note = inputData.note;
+                    doctorInfor.specialtyId = inputData.specialtyId;
+                    doctorInfor.clinicId = inputData.clinicId;
                     await doctorInfor.save()
 
                 } else {
@@ -121,6 +141,8 @@ let saveDetailInfoDoctorService = (inputData) => {
                         nameClinic: inputData.nameClinic,
                         addressClinic: inputData.addressClinic,
                         note: inputData.note,
+                        specialtyId: inputData.specialtyId,
+                        clinicId: inputData.clinicId,
                     })
                 }
                 resolve({
@@ -341,7 +363,9 @@ let getProfileDoctorByIdService = (inputId) => {
                                 { model: db.Allcode, as: 'provinceTypeData', attributes: ['valueEn', 'valueVie'] },
                                 { model: db.Allcode, as: 'paymentTypeData', attributes: ['valueEn', 'valueVie'] },
                             ]
-                        }
+                        },
+
+                        { model: db.Markdown, attributes: ['description'] }
 
                     ],
                     raw: false,
