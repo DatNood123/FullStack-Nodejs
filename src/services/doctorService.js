@@ -1,6 +1,8 @@
+import { where } from "sequelize";
 import db from "../models/index";
-import _ from 'lodash';
+import _, { reject } from 'lodash';
 require('dotenv').config();
+import emailService from './emailService';
 
 const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
 
@@ -391,6 +393,82 @@ let getProfileDoctorByIdService = (inputId) => {
     })
 }
 
+let getListCustomerForStaffByIdService = (inputId, inputDate) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!inputId || !inputDate) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Missing parameters!!!"
+                })
+            } else {
+                let data = await db.Booking.findAll({
+                    where: {
+                        statusId: 'S2',
+                        doctorId: inputId,
+                        date: inputDate,
+                    },
+                    include: [
+                        {
+                            model: db.Allcode, as: 'timeTypeDataCustomer',
+                            attributes: ['valueVie', 'valueEn']
+                        }
+                    ]
+                })
+
+                resolve({
+                    data,
+                    errCode: 0,
+                    errMessage: 'Ok'
+                })
+
+            }
+
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
+
+let sendResultSurveyService = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.email || !data.timeType
+                || !data.doctorId || !data.customerId) {
+                resolve({
+                    errCode: 1,
+                    errMessage: "Missing parameters!!!"
+                })
+            } else {
+                // update customer status
+                let appointment = await db.Booking.findOne({
+                    where: {
+                        doctorId: data.doctorId,
+                        patientId: data.customerId,
+                        timeType: data.timeType,
+                        statusId: 'S2'
+                    }
+                })
+
+                if (appointment) {
+                    appointment.statusId = 'S3';
+                    await appointment.save();
+                }
+
+                //send email
+                await emailService.sendEmailResultSurveyWithAttachment(data)
+
+                resolve({
+                    errCode: 0,
+                    errMessage: 'OK'
+                })
+            }
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
+
 module.exports = {
     getTopDoctorService: getTopDoctorService,
     getAllDoctorService: getAllDoctorService,
@@ -400,4 +478,6 @@ module.exports = {
     getScheduleDoctorByDateService: getScheduleDoctorByDateService,
     getExtraInfoDoctorByIdService: getExtraInfoDoctorByIdService,
     getProfileDoctorByIdService: getProfileDoctorByIdService,
+    getListCustomerForStaffByIdService: getListCustomerForStaffByIdService,
+    sendResultSurveyService: sendResultSurveyService
 }

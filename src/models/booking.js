@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            // define association here
+            Booking.belongsTo(models.Allcode, { foreignKey: 'timeType', targetKey: 'keyMap', as: 'timeTypeDataCustomer' })
+
         }
     };
     Booking.init({
@@ -23,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
         addressCustomer: DataTypes.STRING,
         phoneNumberCustomer: DataTypes.STRING,
         emailCustomer: DataTypes.STRING,
+        nameCustomer: DataTypes.STRING,
         timeString: DataTypes.STRING
 
     }, {

@@ -82,21 +82,15 @@ let sendConfirmEmail = async (dataSend) => {
     const info = await transporter.sendMail({
         from: '"ChauSadec Floriculture" <chausadecfloriculture309>', // sender address
         to: dataSend.receiverEmail, // list of receivers
-        subject: getSubjectEmailConfirm(dataSend), // Subject line
+        subject: "Đặt lịch hẹn thành công", // Subject line
         html: getBodyHTMLEmailConfirm(dataSend), // html body
     });
-}
-
-let getSubjectEmailConfirm = (dataSend) => {
-    let result = 'Đặt lịch hẹn thành công'
-
-    return result
 }
 
 let getBodyHTMLEmailConfirm = (dataSend) => {
     let result =
         `
-            <p>Xin chào</b></p>
+            <p>Xin chào <b>${dataSend.customerName}</b></p>
             <div>Bạn nhận được email này vì đã <b>XÁC NHẬN</b> email đặt lịch hẹn tại ChauSadec Floriculture</div>
             <h4>Thông tin đặt lịch: </h4>
             <div>Thời gian: <b>${dataSend.time}</b></div>
@@ -107,7 +101,59 @@ let getBodyHTMLEmailConfirm = (dataSend) => {
     return result
 }
 
+let sendEmailResultSurveyWithAttachment = async (dataSend) => {
+    const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // true for port 465, false for other ports
+        auth: {
+            user: process.env.EMAIL_APP,
+            pass: process.env.EMAIL_APP_PASSWORD,
+        },
+    });
+
+    const info = await transporter.sendMail({
+        from: '"ChauSadec Floriculture" <chausadecfloriculture309>', // sender address
+        to: dataSend.email, // list of receivers
+        subject: "Kết quả khảo sát sân vườn", // Subject line
+        html: getBodyHTMLEmailResultSurvey(dataSend), // html body
+        attachments: [
+            {
+                filename: 'Kết quả khảo sát sân vườn.png',
+                content: dataSend.imageBase64.split("base64,")[1],
+                encoding: 'base64'
+            }
+        ],
+    });
+}
+
+let getBodyHTMLEmailResultSurvey = (dataSend) => {
+    let result = '';
+    if (dataSend.language === 'vi') {
+        result =
+            `
+            <p>Xin chào <b>${dataSend.nameCustomer}</b></p>
+            <p>Bạn nhận được email này vì đã lựa chọn sử dụng dịch vụ khảo sát sân vườn tại ChauSadec Floriculture.</p>
+            <h4>Thông tin kết quả khảo sát được gửi trong file đính kèm </h4>
+            <div>Xin chân thành cảm ơn!!!</div>
+        `
+    }
+
+    if (dataSend.language === 'en') {
+        result =
+            `
+            <p>Dear <b>${dataSend.nameCustomer}</b></p>
+            <p>You received this email because you chose to use the garden survey service at ChauSadec Floriculture.</p>
+            <h4>The survey results are sent in the attached file. </h4>
+            <div>Thank you very much.!!!</div>
+        `
+    }
+
+    return result
+}
+
 module.exports = {
     sendSimpleEmail: sendSimpleEmail,
-    sendConfirmEmail: sendConfirmEmail
+    sendConfirmEmail: sendConfirmEmail,
+    sendEmailResultSurveyWithAttachment: sendEmailResultSurveyWithAttachment
 }

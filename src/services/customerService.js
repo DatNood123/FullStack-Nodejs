@@ -48,6 +48,7 @@ let postBookAppointmentService = (data) => {
                             addressCustomer: data.address,
                             phoneNumberCustomer: data.phoneNumber,
                             emailCustomer: data.email,
+                            nameCustomer: data.fullName,
                             timeString: data.timeString,
                             token: token
                         }
@@ -109,6 +110,7 @@ let postVerifyBookAppointmentService = (data) => {
                     await appointment.save();
 
                     await emailService.sendConfirmEmail({
+                        customerName: appointment.nameCustomer,
                         receiverEmail: appointment.emailCustomer,
                         time: appointment.timeString,
                         date: appointment.date,

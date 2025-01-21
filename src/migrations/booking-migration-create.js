@@ -45,6 +45,10 @@ module.exports = {
                 type: Sequelize.STRING
             },
 
+            nameCustomer: {
+                type: Sequelize.STRING
+            },
+
             timeString: {
                 type: Sequelize.STRING
             },
